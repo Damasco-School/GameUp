@@ -1,0 +1,13 @@
+db:
+    image: mysql:8.0
+    container_name: gameup-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: gameup_db
+      MYSQL_ROOT_PASSWORD: root_password
+    volumes:
+      - db_data:/var/lib/mysql
+      # Questa riga qui sotto è quella fondamentale:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - gameup-net
