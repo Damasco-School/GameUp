@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GameUp — Forum</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#07071a;color:#fff;font-family:'Exo 2',sans-serif;min-height:100vh}
+
+/* NAV */
+nav{display:flex;align-items:center;gap:14px;padding:12px 28px;background:rgba(0,0,0,.6);backdrop-filter:blur(14px);border-bottom:1px solid rgba(0,245,212,.1);position:sticky;top:0;z-index:50}
+.logo{font-family:'Orbitron',sans-serif;font-size:1.3rem;font-weight:900;background:linear-gradient(135deg,#00f5d4,#7b2ff7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:4px;text-decoration:none}
+.breadcrumb{display:flex;align-items:center;gap:8px;font-size:.72rem;color:rgba(255,255,255,.4)}
+.breadcrumb span.link{cursor:pointer;transition:color .2s}.breadcrumb span.link:hover{color:#00f5d4}
+.breadcrumb .sep{color:rgba(255,255,255,.2)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+.btn-sm{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 14px;color:rgba(255,255,255,.7);font-size:.72rem;cursor:pointer;transition:all .2s;font-family:'Exo 2',sans-serif}
+.btn-sm:hover{border-color:rgba(0,245,212,.4);color:#00f5d4}
+.btn-primary{background:linear-gradient(135deg,#00f5d4,#7b2ff7);border:none;border-radius:8px;padding:7px 18px;color:#000;font-family:'Orbitron',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:1px;cursor:pointer;transition:filter .2s}
+.btn-primary:hover{filter:brightness(1.1)}
+.btn-danger{background:rgba(255,50,50,.1);border:1px solid rgba(255,50,50,.3);border-radius:8px;padding:5px 12px;color:#ff5555;font-size:.7rem;cursor:pointer;transition:all .2s}
+.btn-danger:hover{background:rgba(255,50,50,.25)}
+#user-badge{font-size:.72rem;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:6px}
+#user-badge .dot{width:6px;height:6px;border-radius:50%;background:#00f5d4}
+
+/* PAGE */
+.page{max-width:900px;margin:0 auto;padding:32px 20px 80px}
+.view{display:none}.view.active{display:block;animation:fadeUp .25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* LOGIN SCREEN */
+#view-login{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh}
+.auth-box{background:rgba(255,255,255,.03);border:1px solid rgba(0,245,212,.2);border-radius:16px;padding:36px;width:100%;max-width:420px}
+.auth-box h2{font-family:'Orbitron',sans-serif;font-size:1rem;letter-spacing:3px;margin-bottom:6px;color:#00f5d4}
+.auth-box p{font-size:.78rem;color:rgba(255,255,255,.35);margin-bottom:28px}
+.auth-tabs{display:flex;gap:2px;margin-bottom:24px;background:rgba(255,255,255,.04);border-radius:8px;padding:3px}
+.auth-tab{flex:1;padding:8px;text-align:center;font-size:.65rem;font-family:'Orbitron',sans-serif;letter-spacing:1px;cursor:pointer;border-radius:6px;color:rgba(255,255,255,.4);transition:all .2s}
+.auth-tab.active{background:rgba(0,245,212,.15);color:#00f5d4}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:.62rem;font-family:'Orbitron',sans-serif;letter-spacing:2px;color:rgba(255,255,255,.3);margin-bottom:6px}
+.form-group input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;color:#fff;font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;transition:border .2s}
+.form-group input:focus{border-color:#00f5d4}
+.auth-err{color:#ff5555;font-size:.75rem;margin-bottom:12px;display:none}
+.auth-submit{width:100%;margin-top:4px}
+
+/* CATEGORIES */
+.section-title{font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:4px;color:rgba(255,255,255,.25);margin-bottom:18px}
+.cat-list{display:flex;flex-direction:column;gap:2px}
+.cat-row{display:flex;align-items:center;gap:18px;padding:16px 22px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;cursor:pointer;transition:all .2s}
+.cat-row:hover{background:rgba(0,245,212,.04);border-color:rgba(0,245,212,.2);transform:translateX(3px)}
+.cat-icon{font-size:1.5rem;width:38px;text-align:center;flex-shrink:0}
+.cat-info{flex:1}.cat-info h3{font-size:.95rem;font-weight:600;margin-bottom:2px}.cat-info p{font-size:.72rem;color:rgba(255,255,255,.35)}
+.cat-stats{text-align:right;flex-shrink:0}
+.cat-stats .count{font-family:'Orbitron',sans-serif;font-size:.95rem;font-weight:700;color:#00f5d4}
+.cat-stats .label{font-size:.62rem;color:rgba(255,255,255,.25);letter-spacing:1px}
+
+/* POSTS */
+.posts-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.posts-header h2{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;letter-spacing:3px}
+.post-list{display:flex;flex-direction:column;gap:2px}
+.post-row{display:flex;align-items:center;gap:16px;padding:14px 20px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;cursor:pointer;transition:all .2s}
+.post-row:hover{background:rgba(0,245,212,.04);border-color:rgba(0,245,212,.18);transform:translateX(2px)}
+.post-info{flex:1;min-width:0}.post-info h3{font-size:.9rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.post-info .meta{font-size:.68rem;color:rgba(255,255,255,.3)}
+.post-replies{font-family:'Orbitron',sans-serif;font-size:.8rem;color:#7b2ff7;font-weight:700;flex-shrink:0}
+.empty-state{text-align:center;padding:48px;color:rgba(255,255,255,.2);font-size:.8rem;letter-spacing:2px}
+
+/* SINGLE POST */
+.post-title{font-family:'Orbitron',sans-serif;font-size:1.2rem;font-weight:900;letter-spacing:2px;margin-bottom:6px;line-height:1.3}
+.post-meta-row{font-size:.72rem;color:rgba(255,255,255,.3);margin-bottom:24px;display:flex;gap:14px;flex-wrap:wrap}
+.post-body{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:22px;margin-bottom:6px;line-height:1.8;font-size:.9rem;color:rgba(255,255,255,.8)}
+.replies-section{margin-top:32px}
+.replies-title{font-family:'Orbitron',sans-serif;font-size:.62rem;letter-spacing:3px;color:rgba(255,255,255,.25);margin-bottom:14px}
+.reply-card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:16px;margin-bottom:8px;animation:fadeUp .2s ease;position:relative}
+.reply-author{font-size:.68rem;color:#7b2ff7;font-family:'Orbitron',sans-serif;letter-spacing:1px;margin-bottom:6px}
+.reply-date{font-size:.62rem;color:rgba(255,255,255,.2);margin-left:8px}
+.reply-body{font-size:.86rem;color:rgba(255,255,255,.7);line-height:1.65}
+.reply-del{position:absolute;top:10px;right:10px;display:none}
+
+/* REPLY FORM */
+.reply-form{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:18px;margin-top:20px}
+.reply-form h3{font-family:'Orbitron',sans-serif;font-size:.62rem;letter-spacing:2px;color:rgba(255,255,255,.3);margin-bottom:14px}
+.reply-form textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;color:#fff;font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;resize:vertical;min-height:90px;transition:border .2s}
+.reply-form textarea:focus{border-color:#00f5d4}
+.reply-form-footer{display:flex;justify-content:flex-end;margin-top:10px}
+
+/* MODAL */
+#post-modal{position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(16px);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+.modal-box{background:#0c0c22;border:1px solid rgba(0,245,212,.2);border-radius:16px;padding:28px;width:100%;max-width:540px;animation:fadeUp .25s ease}
+.modal-box h2{font-family:'Orbitron',sans-serif;font-size:.9rem;letter-spacing:3px;margin-bottom:22px;color:#00f5d4}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+.modal-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;color:#fff;font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;margin-bottom:12px;transition:border .2s}
+.modal-input:focus{border-color:#00f5d4}
+.modal-textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;color:#fff;font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;resize:vertical;min-height:120px;transition:border .2s}
+.modal-textarea:focus{border-color:#00f5d4}
+.modal-label{display:block;font-size:.6rem;font-family:'Orbitron',sans-serif;letter-spacing:2px;color:rgba(255,255,255,.3);margin-bottom:6px}
+
+/* ADMIN badge */
+.admin-badge{background:rgba(255,50,50,.15);border:1px solid rgba(255,50,50,.35);border-radius:4px;padding:2px 8px;font-size:.6rem;font-family:'Orbitron',sans-serif;color:#ff7070;letter-spacing:1px;margin-left:4px}
+.del-btn-inline{background:rgba(255,50,50,.1);border:1px solid rgba(255,50,50,.25);border-radius:4px;padding:3px 8px;color:#ff6060;font-size:.62rem;cursor:pointer;transition:all .2s;margin-left:8px}
+.del-btn-inline:hover{background:rgba(255,50,50,.25)}
+
+/* Spinner */
+.spinner{width:24px;height:24px;border:3px solid rgba(0,245,212,.15);border-top-color:#00f5d4;border-radius:50%;animation:spin .7s linear infinite;margin:40px auto;display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="logo">GAMEUP</a>
+  <div class="breadcrumb">
+    <span class="link" onclick="showCats()">💬 Forum</span>
+    <span class="sep" id="bc-sep" style="display:none">›</span>
+    <span id="bc-cat" style="display:none"></span>
+    <span class="sep" id="bc-sep2" style="display:none">›</span>
+    <span id="bc-post" style="display:none"></span>
+  </div>
+  <div class="nav-r">
+    <div id="user-badge" style="display:none">
+      <div class="dot"></div>
+      <span id="user-name-nav">—</span>
+      <span id="admin-badge-nav" class="admin-badge" style="display:none">ADMIN</span>
+    </div>
+    <button id="new-post-btn" class="btn-primary" style="display:none" onclick="openPostModal()">＋ NUOVO POST</button>
+    <a href="admin.html" id="admin-link" class="btn-sm" style="display:none">🔧 ADMIN</a>
+    <button id="logout-btn" class="btn-sm" style="display:none" onclick="doLogout()">Esci</button>
+    <a href="index.html" class="btn-sm">← MONDO</a>
+  </div>
+</nav>
+
+<!-- NEW POST MODAL -->
+<div id="post-modal">
+  <div class="modal-box">
+    <h2>NUOVO POST</h2>
+    <label class="modal-label">TITOLO *</label>
+    <input type="text" id="modal-title" class="modal-input" placeholder="Di cosa vuoi parlare?" maxlength="200">
+    <label class="modal-label">TESTO *</label>
+    <textarea id="modal-body" class="modal-textarea" placeholder="Scrivi il tuo messaggio..."></textarea>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closePostModal()">Annulla</button>
+      <button class="btn-primary" onclick="submitPost()">PUBBLICA →</button>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <!-- LOGIN -->
+  <div id="view-login" class="view active">
+    <div class="auth-box">
+      <h2>GAMEUP FORUM</h2>
+      <p>Accedi o registrati per partecipare alle discussioni</p>
+      <div class="auth-tabs">
+        <div class="auth-tab active" onclick="switchTab('login')">ACCEDI</div>
+        <div class="auth-tab" onclick="switchTab('register')">REGISTRATI</div>
+      </div>
+      <div id="auth-err" class="auth-err"></div>
+      <div id="tab-login">
+        <div class="form-group"><label>EMAIL</label><input type="email" id="login-email" placeholder="la-tua@email.com"></div>
+        <div class="form-group"><label>PASSWORD</label><input type="password" id="login-pass" placeholder="••••••••"></div>
+        <button class="btn-primary auth-submit" onclick="doLogin()">ACCEDI →</button>
+      </div>
+      <div id="tab-register" style="display:none">
+        <div class="form-group"><label>NOME</label><input type="text" id="reg-name" placeholder="Il tuo nome" maxlength="40"></div>
+        <div class="form-group"><label>EMAIL</label><input type="email" id="reg-email" placeholder="la-tua@email.com"></div>
+        <div class="form-group"><label>PASSWORD</label><input type="password" id="reg-pass" placeholder="Almeno 6 caratteri"></div>
+        <button class="btn-primary auth-submit" onclick="doRegister()">REGISTRATI →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORIES -->
+  <div id="view-cats" class="view">
+    <div class="section-title">SCEGLI UNA CATEGORIA</div>
+    <div class="cat-list" id="cat-list"><div class="spinner"></div></div>
+  </div>
+
+  <!-- POSTS -->
+  <div id="view-posts" class="view">
+    <div class="posts-header">
+      <h2 id="posts-title">—</h2>
+    </div>
+    <div class="post-list" id="post-list"></div>
+  </div>
+
+  <!-- SINGLE POST -->
+  <div id="view-post" class="view">
+    <div id="post-content"></div>
+  </div>
+</div>
+
+<script>
+// ── STORAGE LIBS ──────────────────────────────────────────────
+const _HOST = window.location.hostname || 'localhost';
+const API   = `http://${_HOST}:8080`;
+
+// ── AUTH ──────────────────────────────────────────────────────
+const LS_USERS_KEY   = 'gameup_users';
+const LS_SESSION_KEY = 'gameup_session';
+const ADMIN_EMAIL    = 'damasco.simon@polotecnologicoimperiese.it';
+
+function lsGetUsers(){ try{ return JSON.parse(localStorage.getItem(LS_USERS_KEY)||'[]'); }catch{ return []; } }
+function lsSaveUsers(u){ localStorage.setItem(LS_USERS_KEY, JSON.stringify(u)); }
+function lsGetSession(){ try{ return JSON.parse(localStorage.getItem(LS_SESSION_KEY)||'null'); }catch{ return null; } }
+function lsSaveSession(s){ localStorage.setItem(LS_SESSION_KEY, JSON.stringify(s)); }
+function lsClearSession(){ localStorage.removeItem(LS_SESSION_KEY); }
+function simpleHash(str){ let h=0; for(let i=0;i<str.length;i++){h=(Math.imul(31,h)+str.charCodeAt(i))|0;} return 'h'+Math.abs(h).toString(36); }
+
+const AUTH = {
+  getSession(){ return lsGetSession(); },
+  isAdmin(){ const s=lsGetSession(); return s&&s.email===ADMIN_EMAIL; },
+  async register(email,password,name){
+    if(password.length<6) return {ok:false,error:'Password troppo corta (min 6 caratteri)'};
+    try{
+      const r=await fetch(`${API}/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email,password,name}),signal:AbortSignal.timeout(2500)});
+      if(r.ok){const d=await r.json();if(d.id){
+        const users=lsGetUsers();if(!users.find(u=>u.email===email)){users.push({id:d.id,email,name,hash:simpleHash(password),created_at:new Date().toISOString()});lsSaveUsers(users);}
+        lsSaveSession({id:d.id,email,name});return {ok:true};
+      }}
+    }catch{}
+    const users=lsGetUsers();
+    if(users.find(u=>u.email===email)) return {ok:false,error:'Email già registrata'};
+    const id=users.length?Math.max(...users.map(u=>u.id||0))+1:1;
+    users.push({id,email,name,hash:simpleHash(password),created_at:new Date().toISOString()});
+    lsSaveUsers(users); lsSaveSession({id,email,name}); return {ok:true};
+  },
+  async login(email,password){
+    try{
+      const r=await fetch(`${API}/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email,password}),signal:AbortSignal.timeout(2500)});
+      if(r.ok){const d=await r.json();if(d.id){lsSaveSession({id:d.id,email,name:d.name});return {ok:true};}}
+    }catch{}
+    const user=lsGetUsers().find(u=>u.email===email&&u.hash===simpleHash(password));
+    if(!user) return {ok:false,error:'Email o password errati'};
+    lsSaveSession({id:user.id,email:user.email,name:user.name}); return {ok:true};
+  },
+  logout(){ lsClearSession(); }
+};
+
+// ── FORUM STORAGE ─────────────────────────────────────────────
+const LS_POSTS_KEY  = 'gameup_forum_posts';
+const LS_REPLIES_KEY= 'gameup_forum_replies';
+const DEFAULT_CATS=[
+  {id:1,name:'Generale',icon:'💬',desc:'Discussioni generali'},
+  {id:2,name:'Storia',icon:'🏛️',desc:'Discussioni sulla materia'},
+  {id:3,name:'Matematica',icon:'📐',desc:'Discussioni sulla materia'},
+  {id:4,name:'Scienze',icon:'🔬',desc:'Discussioni sulla materia'},
+  {id:5,name:'Letteratura',icon:'📚',desc:'Discussioni sulla materia'},
+  {id:6,name:'Geografia',icon:'🌍',desc:'Discussioni sulla materia'},
+  {id:7,name:'Informatica',icon:'💻',desc:'Discussioni sulla materia'},
+];
+function lsGetPosts(){ try{ return JSON.parse(localStorage.getItem(LS_POSTS_KEY)||'[]'); }catch{ return []; } }
+function lsGetReplies(){ try{ return JSON.parse(localStorage.getItem(LS_REPLIES_KEY)||'[]'); }catch{ return []; } }
+function lsSavePosts(p){ localStorage.setItem(LS_POSTS_KEY,JSON.stringify(p)); }
+function lsSaveReplies(r){ localStorage.setItem(LS_REPLIES_KEY,JSON.stringify(r)); }
+function nextId(arr){ return arr.length?Math.max(...arr.map(x=>x.id||0))+1:1; }
+
+const FORUM = {
+  async getCategories(){
+    try{
+      const r=await fetch(`${API}/forum/categories`,{signal:AbortSignal.timeout(2000)});
+      if(r.ok){const d=await r.json();if(Array.isArray(d)&&d.length){
+        // arricchisci con conteggi locali se mancano
+        return d;
+      }}
+    }catch{}
+    const posts=lsGetPosts();
+    return DEFAULT_CATS.map(c=>({...c,
+      post_count:posts.filter(p=>p.category_id===c.id).length,
+      last_post:posts.filter(p=>p.category_id===c.id).sort((a,b)=>b.id-a.id)[0]?.created_at||null
+    }));
+  },
+  async getPosts(catId){
+    try{
+      const r=await fetch(`${API}/forum/categories/${catId}/posts`,{signal:AbortSignal.timeout(2000)});
+      if(r.ok){const d=await r.json();if(Array.isArray(d)){
+        // aggiungi anche post locali non presenti sul server
+        const localPosts=lsGetPosts().filter(p=>p.category_id===catId);
+        const serverIds=new Set(d.map(p=>String(p.id)));
+        const extra=localPosts.filter(p=>!serverIds.has(String(p.id)));
+        return [...d,...extra].sort((a,b)=>b.id-a.id);
+      }}
+    }catch{}
+    const replies=lsGetReplies();
+    return lsGetPosts().filter(p=>p.category_id===catId)
+      .map(p=>({...p,reply_count:replies.filter(r=>r.post_id===p.id).length}))
+      .sort((a,b)=>b.id-a.id);
+  },
+  async getPost(postId){
+    try{
+      const r=await fetch(`${API}/forum/posts/${postId}`,{signal:AbortSignal.timeout(2000)});
+      if(r.ok){const d=await r.json();if(d&&d.id){
+        // aggiungi replies locali non presenti
+        const localReplies=lsGetReplies().filter(r=>r.post_id===postId);
+        const serverReplyIds=new Set((d.replies||[]).map(r=>String(r.id)));
+        const extra=localReplies.filter(r=>!serverReplyIds.has(String(r.id)));
+        return {...d,replies:[...(d.replies||[]),...extra]};
+      }}
+    }catch{}
+    const post=lsGetPosts().find(p=>p.id===postId);
+    if(!post) return null;
+    return {...post,replies:lsGetReplies().filter(r=>r.post_id===postId)};
+  },
+  async createPost(catId,author,title,body){
+    try{
+      const r=await fetch(`${API}/forum/categories/${catId}/posts`,{method:'POST',
+        headers:{'Content-Type':'application/json'},body:JSON.stringify({author,title,body}),
+        signal:AbortSignal.timeout(2500)});
+      if(r.ok){const d=await r.json();if(d&&d.id){
+        const posts=lsGetPosts();
+        posts.push({id:d.id,category_id:catId,author,title,body,created_at:new Date().toISOString()});
+        lsSavePosts(posts);return {ok:true,id:d.id};
+      }}
+    }catch{}
+    const posts=lsGetPosts();const id=nextId(posts);
+    posts.push({id,category_id:catId,author,title,body,created_at:new Date().toISOString()});
+    lsSavePosts(posts);return {ok:true,id};
+  },
+  async createReply(postId,author,body){
+    try{
+      const r=await fetch(`${API}/forum/posts/${postId}/replies`,{method:'POST',
+        headers:{'Content-Type':'application/json'},body:JSON.stringify({author,body}),
+        signal:AbortSignal.timeout(2500)});
+      if(r.ok) return {ok:true};
+    }catch{}
+    const replies=lsGetReplies();
+    replies.push({id:nextId(replies),post_id:postId,author,body,created_at:new Date().toISOString()});
+    lsSaveReplies(replies);return {ok:true};
+  },
+  deletePost(postId){
+    lsSavePosts(lsGetPosts().filter(p=>p.id!==postId));
+    lsSaveReplies(lsGetReplies().filter(r=>r.post_id!==postId));
+  },
+  deleteReply(replyId){ lsSaveReplies(lsGetReplies().filter(r=>r.id!==replyId)); }
+};
+
+// ── STATO ─────────────────────────────────────────────────────
+let currentCatId=null, currentCatName='', currentPostId=null;
+
+// ── VIEWS ─────────────────────────────────────────────────────
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function showCats(){
+  currentCatId=null;currentPostId=null;
+  document.getElementById('bc-sep').style.display='none';
+  document.getElementById('bc-cat').style.display='none';
+  document.getElementById('bc-sep2').style.display='none';
+  document.getElementById('bc-post').style.display='none';
+  document.getElementById('new-post-btn').style.display='none';
+  showView('view-cats');
+  loadCategories();
+}
+
+// ── AUTH UI ───────────────────────────────────────────────────
+function switchTab(t){
+  document.querySelectorAll('.auth-tab').forEach((el,i)=>el.classList.toggle('active',i===(t==='login'?0:1)));
+  document.getElementById('tab-login').style.display=t==='login'?'block':'none';
+  document.getElementById('tab-register').style.display=t==='register'?'block':'none';
+  document.getElementById('auth-err').style.display='none';
+}
+function showAuthErr(msg){const e=document.getElementById('auth-err');e.textContent=msg;e.style.display='block';}
+
+async function doLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  if(!email||!pass){showAuthErr('Compila tutti i campi');return;}
+  const res=await AUTH.login(email,pass);
+  if(!res.ok){showAuthErr(res.error);return;}
+  onLoggedIn();
+}
+async function doRegister(){
+  const name=document.getElementById('reg-name').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const pass=document.getElementById('reg-pass').value;
+  if(!name||!email||!pass){showAuthErr('Compila tutti i campi');return;}
+  const res=await AUTH.register(email,pass,name);
+  if(!res.ok){showAuthErr(res.error);return;}
+  onLoggedIn();
+}
+function doLogout(){
+  AUTH.logout();
+  document.getElementById('user-badge').style.display='none';
+  document.getElementById('logout-btn').style.display='none';
+  document.getElementById('new-post-btn').style.display='none';
+  document.getElementById('admin-link').style.display='none';
+  showView('view-login');
+}
+function onLoggedIn(){
+  const s=AUTH.getSession();
+  document.getElementById('user-name-nav').textContent=s.name;
+  document.getElementById('user-badge').style.display='flex';
+  document.getElementById('logout-btn').style.display='block';
+  if(AUTH.isAdmin()){
+    document.getElementById('admin-badge-nav').style.display='inline';
+    document.getElementById('admin-link').style.display='block';
+  }
+  showCats();
+}
+
+// ── CATEGORIE ─────────────────────────────────────────────────
+async function loadCategories(){
+  const list=document.getElementById('cat-list');
+  list.innerHTML='<div class="spinner"></div>';
+  const cats=await FORUM.getCategories();
+  list.innerHTML='';
+  cats.forEach(c=>{
+    const d=document.createElement('div');d.className='cat-row';
+    d.innerHTML=`<div class="cat-icon">${c.icon||'💬'}</div>
+      <div class="cat-info"><h3>${c.name}</h3><p>${c.desc||''}</p></div>
+      <div class="cat-stats"><div class="count">${c.post_count||0}</div><div class="label">POST</div></div>`;
+    d.onclick=()=>loadPosts(c.id,c.name);
+    list.appendChild(d);
+  });
+}
+
+// ── POSTS ─────────────────────────────────────────────────────
+async function loadPosts(catId,catName){
+  currentCatId=catId; currentCatName=catName;
+  document.getElementById('bc-sep').style.display='';
+  document.getElementById('bc-cat').style.display='';
+  document.getElementById('bc-cat').textContent=catName;
+  document.getElementById('bc-sep2').style.display='none';
+  document.getElementById('bc-post').style.display='none';
+  document.getElementById('new-post-btn').style.display='block';
+  showView('view-posts');
+  document.getElementById('posts-title').textContent=catName;
+  const list=document.getElementById('post-list');
+  list.innerHTML='<div class="spinner"></div>';
+  const posts=await FORUM.getPosts(catId);
+  list.innerHTML='';
+  if(!posts.length){list.innerHTML='<div class="empty-state">Nessun post ancora — sii il primo! 👆</div>';return;}
+  posts.forEach(p=>{
+    const d=document.createElement('div');d.className='post-row';
+    const date=p.created_at?new Date(p.created_at).toLocaleDateString('it-IT'):'';
+    d.innerHTML=`<div style="font-size:1.1rem;flex-shrink:0">💬</div>
+      <div class="post-info"><h3>${escHtml(p.title)}</h3>
+      <div class="meta">👤 ${escHtml(p.author||'Anonimo')} · ${date}</div></div>
+      <div class="post-replies">${p.reply_count||0} 💬</div>`;
+    d.onclick=()=>loadPost(p.id,p.title);
+    list.appendChild(d);
+  });
+}
+
+// ── SINGLE POST ───────────────────────────────────────────────
+async function loadPost(postId,postTitle){
+  currentPostId=postId;
+  document.getElementById('bc-sep2').style.display='';
+  document.getElementById('bc-post').style.display='';
+  document.getElementById('bc-post').textContent=postTitle.substring(0,30)+(postTitle.length>30?'…':'');
+  document.getElementById('new-post-btn').style.display='none';
+  showView('view-post');
+  const content=document.getElementById('post-content');
+  content.innerHTML='<div class="spinner"></div>';
+  const post=await FORUM.getPost(postId);
+  if(!post){content.innerHTML='<div class="empty-state">Post non trovato</div>';return;}
+  const isAdmin=AUTH.isAdmin();
+  const date=post.created_at?new Date(post.created_at).toLocaleDateString('it-IT'):'';
+  let repliesHtml='';
+  (post.replies||[]).forEach(r=>{
+    const rd=r.created_at?new Date(r.created_at).toLocaleDateString('it-IT'):'';
+    repliesHtml+=`<div class="reply-card" id="reply-${r.id}">
+      <div class="reply-author">${escHtml(r.author||'Anonimo')}<span class="reply-date">${rd}</span>
+      ${isAdmin?`<button class="del-btn-inline" onclick="deleteReply(${r.id})">🗑 Elimina</button>`:''}
+      </div>
+      <div class="reply-body">${escHtml(r.body)}</div>
+    </div>`;
+  });
+  const s=AUTH.getSession();
+  content.innerHTML=`
+    ${isAdmin?`<button class="btn-danger" style="margin-bottom:16px" onclick="deletePostAndBack(${post.id})">🗑 Elimina post</button>`:''}
+    <div class="post-title">${escHtml(post.title)}</div>
+    <div class="post-meta-row"><span>👤 ${escHtml(post.author||'Anonimo')}</span><span>📅 ${date}</span></div>
+    <div class="post-body">${escHtml(post.body)}</div>
+    <div class="replies-section">
+      <div class="replies-title">${(post.replies||[]).length} RISPOSTA/E</div>
+      ${repliesHtml||'<div class="empty-state" style="padding:20px">Nessuna risposta ancora</div>'}
+    </div>
+    <div class="reply-form">
+      <h3>LASCIA UNA RISPOSTA</h3>
+      <textarea id="reply-body" placeholder="Scrivi la tua risposta..."></textarea>
+      <div class="reply-form-footer">
+        <button class="btn-primary" onclick="submitReply()">RISPONDI →</button>
+      </div>
+    </div>`;
+}
+
+async function submitReply(){
+  const body=document.getElementById('reply-body').value.trim();
+  if(!body){alert('Scrivi qualcosa!');return;}
+  const s=AUTH.getSession();
+  const res=await FORUM.createReply(currentPostId,s.name,body);
+  if(res.ok){ await loadPost(currentPostId, document.getElementById('bc-post').textContent); }
+}
+
+function deletePostAndBack(postId){
+  if(!confirm('Eliminare questo post e tutte le sue risposte?')) return;
+  FORUM.deletePost(postId);
+  loadPosts(currentCatId,currentCatName);
+}
+function deleteReply(replyId){
+  if(!confirm('Eliminare questa risposta?')) return;
+  FORUM.deleteReply(replyId);
+  document.getElementById('reply-'+replyId).remove();
+}
+
+// ── NEW POST MODAL ────────────────────────────────────────────
+function openPostModal(){document.getElementById('post-modal').style.display='flex';}
+function closePostModal(){document.getElementById('post-modal').style.display='none';}
+async function submitPost(){
+  const title=document.getElementById('modal-title').value.trim();
+  const body=document.getElementById('modal-body').value.trim();
+  if(!title||!body){alert('Compila titolo e testo!');return;}
+  const s=AUTH.getSession();
+  const res=await FORUM.createPost(currentCatId,s.name,title,body);
+  if(res.ok){
+    closePostModal();
+    document.getElementById('modal-title').value='';
+    document.getElementById('modal-body').value='';
+    loadPosts(currentCatId,currentCatName);
+  }
+}
+
+// ── UTILITY ───────────────────────────────────────────────────
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+
+// ── INIT ──────────────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&document.getElementById('view-login').classList.contains('active')){
+    const tab=document.querySelector('.auth-tab.active').textContent;
+    if(tab==='ACCEDI') doLogin(); else doRegister();
+  }
+  if(e.key==='Escape') closePostModal();
+});
+document.getElementById('post-modal').addEventListener('click',e=>{
+  if(e.target===document.getElementById('post-modal')) closePostModal();
+});
+
+// Auto-login se sessione salvata
+const _sess=AUTH.getSession();
+if(_sess){ onLoggedIn(); } else { showView('view-login'); }
+</script>
+</body>
+</html>

@@ -290,7 +290,81 @@ textarea{resize:vertical;min-height:80px}
 </div>
 
 <script>
-const API = 'http://localhost:8080';
+// ============================================================
+//  GameUp Storage — prova server, fallback su localStorage
+// ============================================================
+const _HOST = window.location.hostname || 'localhost';
+const API   = `http://${_HOST}:8080`;
+
+const LS_KEY = 'gameup_games';
+
+function lsGetAll(){
+  try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch{ return []; }
+}
+function lsSave(games){
+  localStorage.setItem(LS_KEY, JSON.stringify(games));
+}
+function lsNextId(){
+  const all=lsGetAll();
+  return all.length ? Math.max(...all.map(g=>g.id||0))+1 : 1;
+}
+
+const GS = {
+  // Carica tutti i giochi (opz. filtra per subject)
+  async getGames(subject){
+    try{
+      const url=subject?`${API}/games?subject=${subject}`:`${API}/games`;
+      const r=await fetch(url,{signal:AbortSignal.timeout(2500)});
+      if(r.ok){ const data=await r.json(); if(Array.isArray(data)&&data.length>0) return data; }
+    }catch{}
+    // fallback localStorage
+    let all=lsGetAll();
+    if(subject) all=all.filter(g=>g.subject===subject);
+    return all;
+  },
+
+  // Carica un gioco per ID
+  async getGame(id){
+    try{
+      const r=await fetch(`${API}/games/${id}`,{signal:AbortSignal.timeout(2500)});
+      if(r.ok){ const data=await r.json(); if(data&&data.id) return data; }
+    }catch{}
+    // fallback localStorage
+    return lsGetAll().find(g=>String(g.id)===String(id))||null;
+  },
+
+  // Salva un nuovo gioco
+  async saveGame(payload){
+    try{
+      const r=await fetch(`${API}/games`,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload),signal:AbortSignal.timeout(3000)
+      });
+      if(r.ok){ const data=await r.json(); if(data&&data.id){
+        // salva anche in localStorage come cache
+        const all=lsGetAll();
+        all.push({...payload,id:data.id,plays:0,created_at:new Date().toISOString()});
+        lsSave(all);
+        return {id:data.id, source:'server'};
+      }}
+    }catch{}
+    // fallback localStorage
+    const newId=lsNextId();
+    const game={...payload,id:newId,plays:0,created_at:new Date().toISOString()};
+    const all=lsGetAll();all.push(game);lsSave(all);
+    return {id:newId, source:'local'};
+  },
+
+  // Incrementa plays
+  async incrementPlay(id){
+    try{ fetch(`${API}/games/${id}/play`,{method:'POST'}); }catch{}
+    // aggiorna anche localStorage
+    const all=lsGetAll();
+    const g=all.find(g=>String(g.id)===String(id));
+    if(g){g.plays=(g.plays||0)+1;lsSave(all);}
+  }
+};
+
 let selectedType = null;
 let createdGameId = null;
 
@@ -524,20 +598,20 @@ async function publishGame() {
   };
 
   try {
-    const res = await fetch(`${API}/games`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error || 'Errore');
-    createdGameId = json.id;
-
+    const result = await GS.saveGame(payload);
+    createdGameId = result.id;
+    // Forza aggiornamento su altre schede (index.html)
+    window.dispatchEvent(new StorageEvent('storage', {key: LS_KEY}));
     // Show success
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.getElementById('success').style.display = 'block';
     document.querySelectorAll('.step').forEach(s => s.classList.add('done'));
-
+    if (result.source === 'local') {
+      const note = document.createElement('p');
+      note.style.cssText = 'color:rgba(255,200,80,.7);font-size:.7rem;margin-top:8px';
+      note.textContent = '💾 Salvato localmente (server non disponibile)';
+      document.getElementById('success').appendChild(note);
+    }
   } catch (e) {
     showError('Errore nella pubblicazione: ' + e.message);
     btn.textContent = '🚀 PUBBLICA ORA';

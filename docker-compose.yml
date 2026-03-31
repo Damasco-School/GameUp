@@ -1,5 +1,22 @@
 version: '3.8'
 
+# ================================================================
+#  GameUp — Docker Compose  (4 container)
+#
+#  AVVIO:  docker-compose up --build
+#
+#  ACCESSO DAL PC DEL SERVER:
+#    Frontend  → http://localhost
+#    Backend   → http://localhost:8080
+#    WebSocket → ws://localhost:3000
+#
+#  ACCESSO DA ALTRI PC (stesso WiFi/LAN):
+#    Trova l'IP del PC server:
+#      Windows  → ipconfig  (cerca "IPv4 Address")
+#      Mac/Linux→ ip addr   (cerca inet su en0/eth0)
+#    Poi apri: http://<QUELL-IP>   sul browser dell'amico
+# ================================================================
+
 services:
 
   db:
@@ -15,6 +32,11 @@ services:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - gameup_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ugameup_user", "-pgameup_pass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build: ./backend
@@ -27,7 +49,16 @@ services:
       DB_PASS: gameup_pass
       DB_NAME: gameup
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    networks:
+      - gameup_net
+
+  ws-server:
+    build: ./ws-server
+    restart: always
+    ports:
+      - "3000:3000"
     networks:
       - gameup_net
 
@@ -36,6 +67,9 @@ services:
     restart: always
     ports:
       - "80:80"
+    depends_on:
+      - backend
+      - ws-server
     networks:
       - gameup_net
 

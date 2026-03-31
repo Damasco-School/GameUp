@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GameUp — Admin</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#07071a;color:#fff;font-family:'Exo 2',sans-serif;min-height:100vh}
+
+/* LOGIN */
+#login-screen{position:fixed;inset:0;background:radial-gradient(ellipse at center,#0d0720 0%,#03020f 100%);display:flex;align-items:center;justify-content:center;z-index:99;flex-direction:column;gap:20px}
+.login-box{background:rgba(255,50,50,.04);border:1px solid rgba(255,50,50,.25);border-radius:16px;padding:36px;width:100%;max-width:380px}
+.login-box h1{font-family:'Orbitron',sans-serif;font-size:1rem;letter-spacing:4px;color:#ff5555;margin-bottom:6px}
+.login-box p{font-size:.75rem;color:rgba(255,255,255,.3);margin-bottom:24px}
+.login-box input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,50,50,.2);border-radius:8px;padding:10px 14px;color:#fff;font-family:'Exo 2',sans-serif;font-size:.9rem;outline:none;margin-bottom:12px;transition:border .2s}
+.login-box input:focus{border-color:#ff5555}
+.login-btn{width:100%;background:linear-gradient(135deg,#ff3c50,#c82040);border:none;border-radius:8px;padding:11px;color:#fff;font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:2px;cursor:pointer;transition:filter .2s}
+.login-btn:hover{filter:brightness(1.1)}
+.login-err{color:#ff5555;font-size:.75rem;display:none;margin-bottom:10px}
+
+/* LAYOUT */
+nav{display:flex;align-items:center;gap:14px;padding:12px 28px;background:rgba(0,0,0,.6);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,50,50,.15);position:sticky;top:0;z-index:50}
+.logo{font-family:'Orbitron',sans-serif;font-size:1.2rem;font-weight:900;color:#ff5555;letter-spacing:4px;text-decoration:none}
+.admin-tag{background:rgba(255,50,50,.15);border:1px solid rgba(255,50,50,.3);border-radius:4px;padding:2px 10px;font-family:'Orbitron',sans-serif;font-size:.58rem;color:#ff7070;letter-spacing:2px}
+.nav-r{margin-left:auto;display:flex;gap:10px}
+.btn-sm{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 14px;color:rgba(255,255,255,.6);font-size:.72rem;cursor:pointer;text-decoration:none;transition:all .2s;font-family:'Exo 2',sans-serif}
+.btn-sm:hover{border-color:rgba(255,50,50,.4);color:#ff7070}
+
+.page{max-width:1000px;margin:0 auto;padding:28px 20px 80px}
+
+/* TABS */
+.tabs{display:flex;gap:2px;background:rgba(255,255,255,.04);border-radius:10px;padding:4px;margin-bottom:28px}
+.tab{flex:1;padding:10px;text-align:center;font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:2px;cursor:pointer;border-radius:8px;color:rgba(255,255,255,.35);transition:all .2s}
+.tab:hover{color:rgba(255,255,255,.6)}
+.tab.active{background:rgba(255,50,50,.15);color:#ff7070;border:1px solid rgba(255,50,50,.25)}
+
+/* STATS CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:28px}
+.stat-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px}
+.stat-card .num{font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:900;margin-bottom:4px}
+.stat-card .lbl{font-size:.65rem;color:rgba(255,255,255,.3);letter-spacing:2px}
+
+/* TABLE */
+.section-title{font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:4px;color:rgba(255,255,255,.25);margin-bottom:14px}
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{font-family:'Orbitron',sans-serif;font-size:.55rem;letter-spacing:2px;color:rgba(255,255,255,.25);padding:8px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,.06)}
+.data-table td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);font-size:.82rem;vertical-align:middle}
+.data-table tr:hover td{background:rgba(255,255,255,.025)}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.6rem;font-family:'Orbitron',sans-serif;letter-spacing:1px}
+.badge-quiz{background:rgba(80,130,220,.2);color:#88aaff}
+.badge-flash{background:rgba(220,180,50,.2);color:#ffdd66}
+.badge-match{background:rgba(50,180,100,.2);color:#66cc88}
+.badge-snake{background:rgba(50,200,200,.2);color:#66dddd}
+.badge-tetris{background:rgba(150,80,220,.2);color:#bb88ff}
+.badge-admin{background:rgba(255,50,50,.2);color:#ff8080}
+.badge-user{background:rgba(100,100,200,.2);color:#9999ff}
+.badge-local{background:rgba(200,150,50,.2);color:#ddaa55}
+.badge-server{background:rgba(50,200,100,.2);color:#66cc88}
+
+.del-btn{background:rgba(255,50,50,.1);border:1px solid rgba(255,50,50,.25);border-radius:6px;padding:4px 10px;color:#ff6060;font-size:.65rem;cursor:pointer;transition:all .2s;white-space:nowrap}
+.del-btn:hover{background:rgba(255,50,50,.25)}
+.view-btn{background:rgba(0,245,212,.08);border:1px solid rgba(0,245,212,.2);border-radius:6px;padding:4px 10px;color:#00f5d4;font-size:.65rem;cursor:pointer;transition:all .2s;white-space:nowrap;text-decoration:none}
+.view-btn:hover{background:rgba(0,245,212,.18)}
+
+.empty{color:rgba(255,255,255,.2);font-size:.8rem;padding:28px;text-align:center;letter-spacing:2px}
+
+/* CONFIRM MODAL */
+#confirm-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:200}
+.confirm-box{background:#0d0d22;border:1px solid rgba(255,50,50,.3);border-radius:14px;padding:28px;max-width:360px;width:90%;text-align:center}
+.confirm-box h3{font-family:'Orbitron',sans-serif;font-size:.85rem;margin-bottom:10px;color:#ff7070}
+.confirm-box p{font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:22px;line-height:1.5}
+.confirm-btns{display:flex;gap:10px;justify-content:center}
+.confirm-yes{background:linear-gradient(135deg,#ff3c50,#c82040);border:none;border-radius:8px;padding:9px 22px;color:#fff;font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1px;cursor:pointer}
+.confirm-no{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 22px;color:rgba(255,255,255,.5);font-size:.72rem;cursor:pointer}
+</style>
+</head>
+<body>
+
+<!-- LOGIN ADMIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>🔧 PANNELLO ADMIN</h1>
+    <p>Accesso riservato all'amministratore</p>
+    <div id="login-err" class="login-err"></div>
+    <input type="email" id="adm-email" placeholder="Email admin" autocomplete="off">
+    <input type="password" id="adm-pass" placeholder="Password">
+    <button class="login-btn" onclick="adminLogin()">ACCEDI AL PANNELLO →</button>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div id="confirm-modal">
+  <div class="confirm-box">
+    <h3>CONFERMA ELIMINAZIONE</h3>
+    <p id="confirm-msg">Sei sicuro di voler eliminare questo elemento?</p>
+    <div class="confirm-btns">
+      <button class="confirm-yes" id="confirm-yes">SÌ, ELIMINA</button>
+      <button class="confirm-no" onclick="closeConfirm()">ANNULLA</button>
+    </div>
+  </div>
+</div>
+
+<nav style="display:none" id="main-nav">
+  <span class="logo">ADMIN</span>
+  <span class="admin-tag">PANNELLO DI CONTROLLO</span>
+  <div class="nav-r">
+    <a href="forum.html" class="btn-sm">💬 Forum</a>
+    <a href="index.html" class="btn-sm">← Mondo</a>
+    <button class="btn-sm" onclick="adminLogout()">Esci</button>
+  </div>
+</nav>
+
+<div class="page" id="main-page" style="display:none">
+  <!-- STATS -->
+  <div class="stats-grid" id="stats-grid"></div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('games')">🎮 GIOCHI</div>
+    <div class="tab" onclick="switchTab('posts')">💬 FORUM</div>
+    <div class="tab" onclick="switchTab('users')">👤 UTENTI</div>
+  </div>
+
+  <!-- GIOCHI -->
+  <div id="tab-games">
+    <div class="section-title">TUTTI I GIOCHI</div>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>TITOLO</th><th>TIPO</th><th>MATERIA</th><th>AUTORE</th><th>PLAYS</th><th>FONTE</th><th>AZIONI</th></tr></thead>
+      <tbody id="games-body"></tbody>
+    </table>
+  </div>
+
+  <!-- FORUM -->
+  <div id="tab-posts" style="display:none">
+    <div class="section-title">TUTTI I POST DEL FORUM</div>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>TITOLO</th><th>CATEGORIA</th><th>AUTORE</th><th>DATA</th><th>AZIONI</th></tr></thead>
+      <tbody id="posts-body"></tbody>
+    </table>
+  </div>
+
+  <!-- UTENTI -->
+  <div id="tab-users" style="display:none">
+    <div class="section-title">TUTTI GLI UTENTI REGISTRATI</div>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>NOME</th><th>EMAIL</th><th>RUOLO</th><th>REGISTRATO</th><th>FONTE</th><th>AZIONI</th></tr></thead>
+      <tbody id="users-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const _HOST = window.location.hostname || 'localhost';
+const API   = `http://${_HOST}:8080`;
+const ADMIN_EMAIL    = 'damasco.simon@polotecnologicoimperiese.it';
+const ADMIN_PASSWORD = 'admin2024';   // ← cambia questa password!
+
+const LS_SESSION_KEY  = 'gameup_session';
+const LS_USERS_KEY    = 'gameup_users';
+const LS_GAMES_KEY    = 'gameup_games';
+const LS_POSTS_KEY    = 'gameup_forum_posts';
+const LS_REPLIES_KEY  = 'gameup_forum_replies';
+
+const DEFAULT_CATS = [
+  {id:1,name:'Generale'},{id:2,name:'Storia'},{id:3,name:'Matematica'},
+  {id:4,name:'Scienze'},{id:5,name:'Letteratura'},{id:6,name:'Geografia'},{id:7,name:'Informatica'}
+];
+
+function ls(k){ try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch{ return null; } }
+function lsArr(k){ return ls(k)||[]; }
+function lsSet(k,v){ localStorage.setItem(k,JSON.stringify(v)); }
+function simpleHash(str){ let h=0; for(let i=0;i<str.length;i++){h=(Math.imul(31,h)+str.charCodeAt(i))|0;} return 'h'+Math.abs(h).toString(36); }
+
+// ── ADMIN LOGIN ────────────────────────────────────────────────
+function adminLogin(){
+  const email=document.getElementById('adm-email').value.trim();
+  const pass=document.getElementById('adm-pass').value;
+  const err=document.getElementById('login-err');
+  if(email!==ADMIN_EMAIL||pass!==ADMIN_PASSWORD){
+    err.textContent='Credenziali errate'; err.style.display='block'; return;
+  }
+  // Salva sessione admin
+  lsSet(LS_SESSION_KEY,{id:0,email:ADMIN_EMAIL,name:'Admin',isAdmin:true});
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('main-nav').style.display='flex';
+  document.getElementById('main-page').style.display='block';
+  loadAll();
+}
+function adminLogout(){
+  localStorage.removeItem(LS_SESSION_KEY);
+  location.reload();
+}
+
+// Controlla sessione esistente
+(function checkSession(){
+  const s=ls(LS_SESSION_KEY);
+  if(s&&s.email===ADMIN_EMAIL&&s.isAdmin){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('main-nav').style.display='flex';
+    document.getElementById('main-page').style.display='block';
+    loadAll();
+  }
+})();
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&document.getElementById('login-screen').style.display!=='none') adminLogin();
+});
+
+// ── TABS ──────────────────────────────────────────────────────
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['games','posts','users'][i]===name));
+  document.getElementById('tab-games').style.display=name==='games'?'block':'none';
+  document.getElementById('tab-posts').style.display=name==='posts'?'block':'none';
+  document.getElementById('tab-users').style.display=name==='users'?'block':'none';
+}
+
+// ── LOAD DATA ─────────────────────────────────────────────────
+async function loadAll(){
+  const games  = await getAllGames();
+  const posts  = getAllPosts();
+  const users  = lsArr(LS_USERS_KEY);
+  const replies= lsArr(LS_REPLIES_KEY);
+
+  // Stats
+  document.getElementById('stats-grid').innerHTML=`
+    <div class="stat-card"><div class="num" style="color:#00f5d4">${games.length}</div><div class="lbl">GIOCHI</div></div>
+    <div class="stat-card"><div class="num" style="color:#7b2ff7">${posts.length}</div><div class="lbl">POST FORUM</div></div>
+    <div class="stat-card"><div class="num" style="color:#ff5555">${replies.length}</div><div class="lbl">RISPOSTE</div></div>
+    <div class="stat-card"><div class="num" style="color:#ffcc44">${users.length}</div><div class="lbl">UTENTI</div></div>`;
+
+  renderGames(games);
+  renderPosts(posts);
+  renderUsers(users);
+}
+
+async function getAllGames(){
+  let serverGames=[];
+  try{
+    const r=await fetch(`${API}/games`,{signal:AbortSignal.timeout(2000)});
+    if(r.ok) serverGames=await r.json();
+  }catch{}
+  const localGames=lsArr(LS_GAMES_KEY);
+  const serverIds=new Set(serverGames.map(g=>String(g.id)));
+  const extra=localGames.filter(g=>!serverIds.has(String(g.id)));
+  return [...serverGames,...extra];
+}
+
+function getAllPosts(){
+  return lsArr(LS_POSTS_KEY).sort((a,b)=>b.id-a.id);
+}
+
+function getCatName(catId){
+  return (DEFAULT_CATS.find(c=>c.id===catId)||{name:'?'}).name;
+}
+
+// ── RENDER ────────────────────────────────────────────────────
+const typeColor={quiz:'badge-quiz',flashcard:'badge-flash',matching:'badge-match',snake:'badge-snake',tetris:'badge-tetris'};
+
+function renderGames(games){
+  const tb=document.getElementById('games-body');
+  if(!games.length){tb.innerHTML=`<tr><td colspan="8" class="empty">Nessun gioco</td></tr>`;return;}
+  tb.innerHTML=games.map(g=>`
+    <tr>
+      <td style="color:rgba(255,255,255,.3)">${g.id}</td>
+      <td><strong>${escHtml(g.title)}</strong><br><span style="font-size:.72rem;color:rgba(255,255,255,.35)">${escHtml(g.description||'')}</span></td>
+      <td><span class="badge ${typeColor[g.type]||''}">${g.type||'?'}</span></td>
+      <td style="color:rgba(255,255,255,.5)">${g.subject||'—'}</td>
+      <td style="color:rgba(255,255,255,.5)">${escHtml(g.author||'Anonimo')}</td>
+      <td style="color:#00f5d4;font-family:'Orbitron',sans-serif;font-size:.8rem">${g.plays||0}</td>
+      <td><span class="badge ${g.source==='server'?'badge-server':'badge-local'}">${g.source||'local'}</span></td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        <a href="play.html?id=${g.id}" class="view-btn" target="_blank">▶ Vedi</a>
+        <button class="del-btn" onclick="confirmDelete('game',${g.id},'Il gioco &ldquo;${escHtml(g.title)}&rdquo; verrà eliminato definitivamente.')">🗑 Elimina</button>
+      </td>
+    </tr>`).join('');
+}
+
+function renderPosts(posts){
+  const tb=document.getElementById('posts-body');
+  if(!posts.length){tb.innerHTML=`<tr><td colspan="6" class="empty">Nessun post</td></tr>`;return;}
+  tb.innerHTML=posts.map(p=>`
+    <tr>
+      <td style="color:rgba(255,255,255,.3)">${p.id}</td>
+      <td><strong>${escHtml(p.title)}</strong></td>
+      <td style="color:rgba(255,255,255,.5)">${getCatName(p.category_id)}</td>
+      <td style="color:rgba(255,255,255,.5)">${escHtml(p.author||'Anonimo')}</td>
+      <td style="color:rgba(255,255,255,.3);font-size:.72rem">${p.created_at?new Date(p.created_at).toLocaleDateString('it-IT'):''}</td>
+      <td><button class="del-btn" onclick="confirmDelete('post',${p.id},'Il post &ldquo;${escHtml(p.title)}&rdquo; e tutte le sue risposte verranno eliminati.')">🗑 Elimina</button></td>
+    </tr>`).join('');
+}
+
+function renderUsers(users){
+  const tb=document.getElementById('users-body');
+  if(!users.length){tb.innerHTML=`<tr><td colspan="7" class="empty">Nessun utente registrato</td></tr>`;return;}
+  tb.innerHTML=users.map(u=>`
+    <tr>
+      <td style="color:rgba(255,255,255,.3)">${u.id}</td>
+      <td><strong>${escHtml(u.name||'—')}</strong></td>
+      <td style="color:rgba(255,255,255,.5)">${escHtml(u.email)}</td>
+      <td><span class="badge ${u.email===ADMIN_EMAIL?'badge-admin':'badge-user'}">${u.email===ADMIN_EMAIL?'ADMIN':'UTENTE'}</span></td>
+      <td style="color:rgba(255,255,255,.3);font-size:.72rem">${u.created_at?new Date(u.created_at).toLocaleDateString('it-IT'):''}</td>
+      <td><span class="badge ${u.source==='server'?'badge-server':'badge-local'}">${u.source||'local'}</span></td>
+      <td>${u.email===ADMIN_EMAIL?'<span style="color:rgba(255,255,255,.2);font-size:.7rem">—</span>':`<button class="del-btn" onclick="confirmDelete('user',${u.id},'L\'utente &ldquo;${escHtml(u.name)}&rdquo; verrà eliminato definitivamente.')">🗑 Elimina</button>`}</td>
+    </tr>`).join('');
+}
+
+// ── DELETE CONFIRM ────────────────────────────────────────────
+let _pendingDelete=null;
+function confirmDelete(type,id,msg){
+  document.getElementById('confirm-msg').innerHTML=msg;
+  document.getElementById('confirm-yes').onclick=()=>{ execDelete(type,id); closeConfirm(); };
+  document.getElementById('confirm-modal').style.display='flex';
+  _pendingDelete={type,id};
+}
+function closeConfirm(){ document.getElementById('confirm-modal').style.display='none'; }
+
+function execDelete(type,id){
+  if(type==='game'){
+    // locale
+    lsSet(LS_GAMES_KEY, lsArr(LS_GAMES_KEY).filter(g=>g.id!==id));
+    // server (fire & forget)
+    fetch(`${API}/games/${id}`,{method:'DELETE'}).catch(()=>{});
+  }
+  else if(type==='post'){
+    lsSet(LS_POSTS_KEY, lsArr(LS_POSTS_KEY).filter(p=>p.id!==id));
+    lsSet(LS_REPLIES_KEY, lsArr(LS_REPLIES_KEY).filter(r=>r.post_id!==id));
+    fetch(`${API}/forum/posts/${id}`,{method:'DELETE'}).catch(()=>{});
+  }
+  else if(type==='user'){
+    lsSet(LS_USERS_KEY, lsArr(LS_USERS_KEY).filter(u=>u.id!==id));
+    fetch(`${API}/users/${id}`,{method:'DELETE'}).catch(()=>{});
+  }
+  loadAll();
+}
+
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
